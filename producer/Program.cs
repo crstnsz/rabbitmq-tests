@@ -1,5 +1,6 @@
 ﻿using System;
 using common;
+using System.Threading;
 
 
 // See https://aka.ms/new-console-template for more information
@@ -7,6 +8,22 @@ Console.ForegroundColor = ConsoleColor.Green;
 Console.WriteLine("****Send Messages*****");
 var rabbitMqClient = new MessageQueue();
 
+var task = Task.Run(() 
+    => Enumerable.Range(0, 200)
+    .ToList()
+    .ForEach(i
+        => 
+        {
+            Thread.Sleep(1000);
+
+            Console.WriteLine("Send Time = {0}", i);
+
+            rabbitMqClient
+                .Publish(
+                    rabbitMqClient.QueueName2,
+                    DateTime.Now.ToString());
+        }));
+    
 foreach(var word in new[] {"several",
     "Alice",
     "possibly",
@@ -40,7 +57,7 @@ foreach(var word in new[] {"several",
     "which",
     "the",
     "words",
-    "`EAT",
+    "EAT",
     "ME'",
     "were",
     "beautifully",
@@ -50,9 +67,11 @@ foreach(var word in new[] {"several",
 {
     var message = string.Concat("Word ", word, " ", DateTime.Now);
 
-    rabbitMqClient.Publish(word);
+    rabbitMqClient.Publish(rabbitMqClient.QueueName1, word);
 
     Console.WriteLine("Send Message = {0}", word);
 }
+
+task.Wait();
 
 Console.ReadKey();
